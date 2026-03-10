@@ -527,3 +527,119 @@ func TestCleanListScope(t *testing.T) {
 		})
 	}
 }
+
+func TestRequestFilterDurationSecondsIsBeta(t *testing.T) {
+	Register()
+	requestFilterDuration.Reset()
+	defer requestFilterDuration.Reset()
+
+	want := `
+		# HELP apiserver_request_filter_duration_seconds [BETA] Request filter latency distribution in seconds, for each filter type
+		# TYPE apiserver_request_filter_duration_seconds histogram
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="0.0001"} 0
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="0.0003"} 0
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="0.001"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="0.003"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="0.01"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="0.03"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="0.1"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="0.3"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="1"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="5"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="10"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="15"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="30"} 1
+		apiserver_request_filter_duration_seconds_bucket{filter="test-filter",le="+Inf"} 1
+		apiserver_request_filter_duration_seconds_sum{filter="test-filter"} 0.001
+		apiserver_request_filter_duration_seconds_count{filter="test-filter"} 1
+	`
+
+	requestFilterDuration.WithLabelValues("test-filter").Observe(0.001)
+
+	if err := testutil.GatherAndCompare(legacyregistry.DefaultGatherer, strings.NewReader(want), "apiserver_request_filter_duration_seconds"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRequestSLIDurationSecondsIsBeta(t *testing.T) {
+	Register()
+	requestSliLatencies.Reset()
+	defer requestSliLatencies.Reset()
+
+	want := `
+		# HELP apiserver_request_sli_duration_seconds [BETA] Response latency distribution (not counting webhook duration and priority & fairness queue wait times) in seconds for each verb, group, version, resource, subresource, scope and component.
+		# TYPE apiserver_request_sli_duration_seconds histogram
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="0.05"} 0
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="0.1"} 0
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="0.2"} 1
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="0.4"} 1
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="0.6"} 1
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="0.8"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="1"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="1.25"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="1.5"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="2"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="3"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="4"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="5"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="6"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="8"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="10"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="15"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="20"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="30"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="45"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="60"} 2
+		apiserver_request_sli_duration_seconds_bucket{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v",le="+Inf"} 2
+		apiserver_request_sli_duration_seconds_sum{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v"} 1
+		apiserver_request_sli_duration_seconds_count{component="apiserver",group="g",resource="r",scope="cluster",subresource="s",verb="GET",version="v"} 2
+	`
+
+	requestSliLatencies.WithLabelValues("GET", "g", "v", "r", "s", "cluster", "apiserver").Observe(0.2)
+	requestSliLatencies.WithLabelValues("GET", "g", "v", "r", "s", "cluster", "apiserver").Observe(0.8)
+
+	if err := testutil.GatherAndCompare(legacyregistry.DefaultGatherer, strings.NewReader(want), "apiserver_request_sli_duration_seconds"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestWatchEventsMetricsAreBeta(t *testing.T) {
+	Register()
+
+	WatchEvents.Reset()
+	defer WatchEvents.Reset()
+	WatchEventsSizes.Reset()
+	defer WatchEventsSizes.Reset()
+
+	wantSizes := `
+		# HELP apiserver_watch_events_sizes [BETA] Watch event size distribution in bytes
+		# TYPE apiserver_watch_events_sizes histogram
+		apiserver_watch_events_sizes_bucket{group="group",resource="resource",version="version",le="1024"} 0
+		apiserver_watch_events_sizes_bucket{group="group",resource="resource",version="version",le="2048"} 0
+		apiserver_watch_events_sizes_bucket{group="group",resource="resource",version="version",le="4096"} 1
+		apiserver_watch_events_sizes_bucket{group="group",resource="resource",version="version",le="8192"} 1
+		apiserver_watch_events_sizes_bucket{group="group",resource="resource",version="version",le="16384"} 1
+		apiserver_watch_events_sizes_bucket{group="group",resource="resource",version="version",le="32768"} 1
+		apiserver_watch_events_sizes_bucket{group="group",resource="resource",version="version",le="65536"} 1
+		apiserver_watch_events_sizes_bucket{group="group",resource="resource",version="version",le="131072"} 1
+		apiserver_watch_events_sizes_bucket{group="group",resource="resource",version="version",le="+Inf"} 1
+		apiserver_watch_events_sizes_sum{group="group",resource="resource",version="version"} 4096
+		apiserver_watch_events_sizes_count{group="group",resource="resource",version="version"} 1
+	`
+
+	wantTotal := `
+		# HELP apiserver_watch_events_total [BETA] Number of events sent in watch clients
+		# TYPE apiserver_watch_events_total counter
+		apiserver_watch_events_total{group="group",resource="resource",version="version"} 1
+	`
+
+	WatchEventsSizes.WithLabelValues("group", "version", "resource").Observe(4096.0)
+	WatchEvents.WithLabelValues("group", "version", "resource").Inc()
+
+	if err := testutil.GatherAndCompare(legacyregistry.DefaultGatherer, strings.NewReader(wantSizes), "apiserver_watch_events_sizes"); err != nil {
+		t.Fatal(err)
+	}
+	if err := testutil.GatherAndCompare(legacyregistry.DefaultGatherer, strings.NewReader(wantTotal), "apiserver_watch_events_total"); err != nil {
+		t.Fatal(err)
+	}
+}
