@@ -528,7 +528,7 @@ func TestCleanListScope(t *testing.T) {
 	}
 }
 
-func TestRequestFilterDurationSecondsIsBeta(t *testing.T) {
+func TestRequestFilterDurationSeconds(t *testing.T) {
 	Register()
 	requestFilterDuration.Reset()
 	defer requestFilterDuration.Reset()
@@ -561,7 +561,7 @@ func TestRequestFilterDurationSecondsIsBeta(t *testing.T) {
 	}
 }
 
-func TestRequestSLIDurationSecondsIsBeta(t *testing.T) {
+func TestRequestSLIDurationSeconds(t *testing.T) {
 	Register()
 	requestSliLatencies.Reset()
 	defer requestSliLatencies.Reset()
